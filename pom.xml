@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.keyhan</groupId>
 	<artifactId>jbsbe</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.6</version>
 
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>The ISO8583 library j8583 made ready for microservices and on stereoids.
@@ -116,6 +116,14 @@
 			<artifactId>j8583</artifactId>
 			<version>1.12.0</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jodd</groupId>
+			<artifactId>jodd-bean</artifactId>
+			<version>5.0.3</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -124,7 +132,7 @@
 		<dependency>
 			<groupId>de.vandermeer</groupId>
 			<artifactId>asciitable</artifactId>
-			<version>0.2.5</version>
+			<version>0.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

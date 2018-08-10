@@ -10,6 +10,8 @@ buildNumber.properties
 .mvn/timing.properties
 *.class
 
+.idea/
+*.iml
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 

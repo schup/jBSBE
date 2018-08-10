@@ -1,5 +1,7 @@
 package org.mashad.jbsbe.iso;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -9,6 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.vandermeer.asciitable.AT_Context;
+import de.vandermeer.asciitable.AsciiTable;
+import de.vandermeer.asciitable.CWC_LongestLine;
+import de.vandermeer.asciitable.CWC_LongestWordMax;
+import de.vandermeer.asciithemes.TA_GridThemeOptions;
 import org.apache.commons.lang3.time.DateUtils;
 import org.mashad.jbsbe.iso.I50Factory.I50Field;
 
@@ -18,11 +25,6 @@ import com.solab.iso8583.IsoValue;
 import com.solab.iso8583.impl.SimpleTraceGenerator;
 import com.solab.iso8583.util.HexCodec;
 
-import de.vandermeer.asciitable.v2.RenderedTable;
-import de.vandermeer.asciitable.v2.V2_AsciiTable;
-import de.vandermeer.asciitable.v2.render.V2_AsciiTableRenderer;
-import de.vandermeer.asciitable.v2.render.WidthLongestWordMinCol;
-import de.vandermeer.asciitable.v2.themes.V2_E_TableThemes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -128,29 +130,36 @@ public class I50Message extends IsoMessage {
 
 	@Override
 	public String toString() {
-		V2_AsciiTable header_table = new V2_AsciiTable();
-		V2_AsciiTable body_table = new V2_AsciiTable();
 
-		header_table.addRule();
-		header_table.addRow("Field", "Value");
-		header_table.addRule();
+		AsciiTable headerTable = new AsciiTable();
+		AsciiTable bodyTable = new AsciiTable();
+
+		Arrays.asList(headerTable, bodyTable).stream().forEach(table -> {
+			table.setPadding(5);
+			table.getRenderer().setCWC(new CWC_LongestLine());
+		});
+
+		headerTable.addRule();
+		headerTable.addRow("Field", "Value");
+		headerTable.addRule();
 		if (null != this.getIsoHeader()) {
-			header_table.addRow("Header", this.getIsoHeader());
-			header_table.addRule();
+			headerTable.addRow("Header", this.getIsoHeader());
+			headerTable.addRule();
 		}
-		header_table.addRow("Message Type", Integer.toHexString(this.getType()));
-		header_table.addRule();
+		headerTable.addRow("Message Type", Integer.toHexString(this.getType()));
+		headerTable.addRule();
 		for (String key : metadata.keySet()) {
-			header_table.addRow(key, metadata.get(key));
-			header_table.addRule();
+			headerTable.addRow(key, metadata.get(key));
+			headerTable.addRule();
 		}
 
 		int length = 0;
-		body_table.addRule();
-		body_table.addRow("Field Number", "Name", "Type", "Length", "Value");
-		body_table.addRule();
+		bodyTable.addRule();
+		bodyTable.addRow("Field Number", "Name", "Type", "Length", "Value");
+		bodyTable.addRule();
 		List<Integer> indexes = new ArrayList<>(I50Factory.i50Fields.keySet());
 		Collections.sort(indexes);
+		DateFormat dateFormat = SimpleDateFormat.getDateInstance();
 		//for (int i : I50Factory.i50Fields.keySet()) {
 		for (int i : indexes) {
 			if (this.hasField(i)) {
@@ -173,6 +182,7 @@ public class I50Message extends IsoMessage {
 					// This is used only for DATE10
 				} else if (fieldValue instanceof Date) {
 					length = 10;
+					fieldValue = dateFormat.format(fieldValue);
 				}
 				String maxLength = "";
 				// String maxLength = "unlimited";
@@ -183,17 +193,21 @@ public class I50Message extends IsoMessage {
 					maxLengthValue = (I50Type.getIsoType(i50Field.i50Type)).getLength();
 					maxLength = "(" + maxLengthValue.toString() + ")";
 				}
-				body_table.addRow(i, i50Field.getName(), i50Field.i50Type.name(), length + maxLength, fieldValue);
-				body_table.addRule();
+				bodyTable.addRow(i, i50Field.getName(), i50Field.i50Type.name(), length + maxLength, fieldValue);
+				//bodyTable.addRule();
 			}
-
 		}
-		V2_AsciiTableRenderer rend = new V2_AsciiTableRenderer();
+		bodyTable.addRule();
+
+		return headerTable.render() +"\n" + bodyTable.render();
+		/*
+		AsciiTableRenderer rend = new AsciiTableRenderer();
 		rend.setTheme(V2_E_TableThemes.UTF_DOUBLE.get());
 		rend.setWidth(new WidthLongestWordMinCol(10));
-		RenderedTable rt_header = rend.render(header_table);
-		RenderedTable rt_body = rend.render(body_table);
+		RenderedTable rt_header = rend.render(headerTable);
+		RenderedTable rt_body = rend.render(bodyTable);
 		return rt_header.toString() + rt_body.toString();
+		*/
 	}
 
 	// @Override

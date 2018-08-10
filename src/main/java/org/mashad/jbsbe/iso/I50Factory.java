@@ -5,6 +5,8 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import jodd.Jodd;
+import jodd.bean.BeanUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mashad.jbsbe.annotation.AutoStan;
 import org.mashad.jbsbe.annotation.Iso8583;
@@ -77,12 +79,12 @@ public class I50Factory<T extends SimpleTransformer> extends MessageFactory<I50M
 			throws IllegalArgumentException, IllegalAccessException {
 		@NonNull
 		I50Message message = setupClass(instance);
-		
+
 		Annotation stanAnnotation = instance.getClass().getAnnotation(AutoStan.class);
 		if(null != stanAnnotation) {
 			message.setStan();
 		}
-		
+
 		if(requiresCustomTransformer(instance) && transformer.getClass() == SimpleTransformer.class) {
 			throw new IllegalArgumentException("One or several of your fields require custom transformer");
 		}
@@ -92,8 +94,11 @@ public class I50Factory<T extends SimpleTransformer> extends MessageFactory<I50M
 		for (int i = 3; i < 129; i++) {
 			field = isoFields.get(i);
 			if (null != field) {
-				Object value = field.get(instance);
-				transformer.setField(i, value, message);
+				// Object value = field.get(instance); use getter - no need for fields to be public
+                Object value = BeanUtil.pojo.getSimpleProperty(instance, field.getName());
+				if (value != null) { // ignore empty fields
+					transformer.setField(i, value, message);
+				}
 			}
 		}
 		return message;
